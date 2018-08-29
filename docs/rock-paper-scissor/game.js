@@ -22,7 +22,7 @@ canvas.addEventListener('click', canvasClick);
 /*--------------------------------*
  * Game Variables                 *
  *--------------------------------*/
-let isClicked = false;
+let isCanvasClicked = false;
 let clickX = 0;
 let clickY = 0;
 let playerHand = '';
@@ -30,11 +30,11 @@ let opponentHand = '';
 let isOpponentTurn = false;
 let isOpponentTextAppear = false;
 
-const buttonTexts = ['ROCK', 'PAPER', 'SCISSOR'];
+const hands = ['ROCK', 'PAPER', 'SCISSOR'];
 let buttons = [];
-buttons[0] = new Button(BUTTON_MARGIN_LEFT, TEXTBOX_MARGIN_TOP+TEXTBOX_HEIGHT+TEXTBOX_MARGIN_BOTTOM+BUTTON_MARGIN_TOP, buttonTexts[0]);
-buttons[1] = new Button(BUTTON_MARGIN_LEFT, buttons[0].y+BUTTON_MARGIN_TOP+BUTTON_HEIGHT, buttonTexts[1]);
-buttons[2] = new Button(BUTTON_MARGIN_LEFT, buttons[1].y+BUTTON_MARGIN_TOP+BUTTON_HEIGHT, buttonTexts[2]);
+buttons[0] = new Button(BUTTON_MARGIN_LEFT, TEXTBOX_MARGIN_TOP+TEXTBOX_HEIGHT+TEXTBOX_MARGIN_BOTTOM+BUTTON_MARGIN_TOP, hands[0]);
+buttons[1] = new Button(BUTTON_MARGIN_LEFT, buttons[0].y+BUTTON_MARGIN_TOP+BUTTON_HEIGHT, hands[1]);
+buttons[2] = new Button(BUTTON_MARGIN_LEFT, buttons[1].y+BUTTON_MARGIN_TOP+BUTTON_HEIGHT, hands[2]);
 
 const lines = [];
 lines[0] = { x: TEXTBOX_MARGIN_LEFT + TEXTBOX_FONT_MARGIN_LEFT, y: TEXTBOX_MARGIN_TOP + TEXTBOX_FONT_MARGIN_TOP};
@@ -61,31 +61,29 @@ function update() {
         buttons[i].show();
 
         // check button click
-        if (isClicked) {
-            if ( !playerHand && isButtonClicked(buttons[i].x, buttons[i].y, BUTTON_WIDTH, BUTTON_HEIGHT, clickX, clickY) ) {
-                playerHand = buttonTexts[i];
-            }
+        if (isCanvasClicked && !playerHand && buttons[i].isClicked() ) {
+            playerHand = buttons[i].text;
         }
     }
 
-    // check hand
-    if (playerHand) {
+    // check turn
+    if (playerHand) {    // if player already pick hand
         drawTextboxText('> You picked ' + playerHand, 1);
         drawTextboxText('Waiting opponent ...', 2);
-        if (!opponentHand) {
+        if (!opponentHand) {    // if opponent not yet pick hand
             let index = getRandomNumber(0, 2);
-            opponentHand = buttonTexts[index];
+            opponentHand = hands[index];
             isOpponentTurn = true;
         }
     }
-    if (isOpponentTurn && opponentHand) {
+    if (isOpponentTurn && opponentHand) {    // if opponent already pick hand
         setTimeout(() => {
             drawTextboxText('> Opponent picked ' + opponentHand, 3);
             isOpponentTextAppear = true;
         }, 1000*OPPONENT_DELAY);
         isOpponentTurn = false;
     }
-    if (isOpponentTextAppear) {
+    if (isOpponentTextAppear) {    // if opponent hand appear
         drawTextboxText('> Opponent picked ' + opponentHand, 3);
 
         if ( result() === 'WIN' ) {
@@ -103,17 +101,15 @@ function update() {
             }
 
             // check button click
-            if (isClicked) {
-                if ( isButtonClicked(buttons[i].x, buttons[i].y, BUTTON_WIDTH, BUTTON_HEIGHT, clickX, clickY) ) {
-                    playAgain();
-                    break;
-                }
+            if ( isCanvasClicked && buttons[i].isClicked() ) {
+                playAgain();
+                break;
             }
         }
     }
 
     // reset click status
-    isClicked = false;
+    isCanvasClicked = false;
 }
 
 /*--------------------------------*
@@ -123,7 +119,29 @@ function canvasClick(event) {
     clickX = event.clientX - canvas.offsetLeft + window.pageXOffset;
     clickY = event.clientY - canvas.offsetTop + window.pageYOffset;
 
-    isClicked = true;
+    isCanvasClicked = true;
+}
+
+/*--------------------------------*
+ * Objects                        *
+ *--------------------------------*/
+function Button(x, y, text) {
+    this.x = x;
+    this.y = y;
+    this.text = text;
+    this.textX = BUTTON_MARGIN_LEFT + (BUTTON_WIDTH/2);
+    this.textY = this.y + (BUTTON_HEIGHT-BUTTON_FONT_SIZE)/2;
+    this.show = () => {
+        drawRect(this.x, this.y, BUTTON_WIDTH, BUTTON_HEIGHT, BUTTON_FILL_COLOR, BUTTON_LINE_COLOR);
+        drawButtonText(this.text, this.textX, this.textY);
+    };
+    this.isClicked = () => {
+        if ( isButtonClicked(this.x, this.y, BUTTON_WIDTH, BUTTON_HEIGHT, clickX, clickY) ) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
 
 /*--------------------------------*
@@ -162,13 +180,13 @@ function drawButtonText(text, x, y) {
 
 function isButtonClicked(buttonX, buttonY, buttonWidth, buttonHeight, clickX, clickY)
 {
-	if (
+    if (
         (buttonX <= clickX && buttonX+buttonWidth >= clickX) &&
         (buttonY <= clickY && buttonY+buttonHeight >= clickY) 
     ) {
         return true;
-	} else {
-		return false;
+    } else {
+	return false;
     }
 }
 
@@ -195,19 +213,7 @@ function getRandomNumber(minimum, maximum) {
     return Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
 }
 
-function Button(x, y, text) {
-    this.x = x;
-    this.y = y;
-    this.text = text;
-    this.textX = BUTTON_MARGIN_LEFT + (BUTTON_WIDTH/2);
-    this.textY = this.y + (BUTTON_HEIGHT-BUTTON_FONT_SIZE)/2;
-    this.show = () => {
-        drawRect(this.x, this.y, BUTTON_WIDTH, BUTTON_HEIGHT, BUTTON_FILL_COLOR, BUTTON_LINE_COLOR);
-        drawButtonText(this.text, this.textX, this.textY);
-    };
-}
-
-// need game variables: playerHand, opponentHand, isOpponentTurn, isOpponentTextAppear, buttons, buttonTexts
+// need game variables: playerHand, opponentHand, isOpponentTurn, isOpponentTextAppear, buttons, hands
 function playAgain() {
     // reset variables
     playerHand = '';
@@ -215,6 +221,6 @@ function playAgain() {
     isOpponentTurn = false;
     isOpponentTextAppear = false;
     for (let i = 0; i < buttons.length; ++i) {
-        buttons[i].text = buttonTexts[i];
+        buttons[i].text = hands[i];
     }
 }
