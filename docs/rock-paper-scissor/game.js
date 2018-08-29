@@ -1,4 +1,4 @@
-/*--------------------------------
+/*--------------------------------*
  * Game System                    *
  *--------------------------------*/
 // setup canvas and context
@@ -45,7 +45,7 @@ function update() {
     // clear canvas
     context.clearRect(0, 0, canvas.width, canvas.height);
 
-	// draw textbox (x, y, width, length, fillColor, lineColor)
+    // draw textbox (x, y, width, length, fillColor, lineColor)
     drawRect(TEXTBOX_MARGIN_LEFT, TEXTBOX_MARGIN_TOP, TEXTBOX_WIDTH, TEXTBOX_HEIGHT, TEXTBOX_FILL_COLOR, TEXTBOX_LINE_COLOR);
 
     // draw textbox text (text, line)
