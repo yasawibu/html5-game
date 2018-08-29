@@ -31,6 +31,11 @@ let isOpponentTurn = false;
 let isOpponentTextAppear = false;
 
 const buttonTexts = ['ROCK', 'PAPER', 'SCISSOR'];
+let buttons = [];
+buttons[0] = new Button(BUTTON_MARGIN_LEFT, TEXTBOX_MARGIN_TOP+TEXTBOX_HEIGHT+TEXTBOX_MARGIN_BOTTOM+BUTTON_MARGIN_TOP, buttonTexts[0]);
+buttons[1] = new Button(BUTTON_MARGIN_LEFT, buttons[0].y+BUTTON_MARGIN_TOP+BUTTON_HEIGHT, buttonTexts[1]);
+buttons[2] = new Button(BUTTON_MARGIN_LEFT, buttons[1].y+BUTTON_MARGIN_TOP+BUTTON_HEIGHT, buttonTexts[2]);
+
 const lines = [];
 lines[0] = { x: TEXTBOX_MARGIN_LEFT + TEXTBOX_FONT_MARGIN_LEFT, y: TEXTBOX_MARGIN_TOP + TEXTBOX_FONT_MARGIN_TOP};
 lines[1] = { x: TEXTBOX_MARGIN_LEFT + TEXTBOX_FONT_MARGIN_LEFT, y: lines[0].y + TEXTBOX_FONT_DEFAULT_SIZE + TEXTBOX_FONT_DEFAULT_SPACING };
@@ -50,6 +55,20 @@ function update() {
 
     // draw textbox text (text, line)
     drawTextboxText('Pick your hand ...', 0);
+
+    for (let i = 0; i < buttons.length; ++i) {
+        // draw button
+        buttons[i].show();
+
+        // check button click
+        if (isClicked) {
+            if ( !playerHand && isButtonClicked(buttons[i].x, buttons[i].y, BUTTON_WIDTH, BUTTON_HEIGHT, clickX, clickY) ) {
+                playerHand = buttonTexts[i];
+            }
+        }
+    }
+
+    // check hand
     if (playerHand) {
         drawTextboxText('> You picked ' + playerHand, 1);
         drawTextboxText('Waiting opponent ...', 2);
@@ -68,6 +87,7 @@ function update() {
     }
     if (isOpponentTextAppear) {
         drawTextboxText('> Opponent picked ' + opponentHand, 3);
+
         if ( result() === 'WIN' ) {
             drawTextboxText('YOU WIN!', 4);
         } else if ( result() === 'DRAW' ) {
@@ -75,29 +95,21 @@ function update() {
         } else if ( result() === 'LOSE' ) {
             drawTextboxText('YOU LOSE!', 4);
         }
-    }
 
-    // draw buttons
-    const buttonX = BUTTON_MARGIN_LEFT;
-    let buttonY = TEXTBOX_MARGIN_TOP + TEXTBOX_HEIGHT + TEXTBOX_MARGIN_BOTTOM + BUTTON_MARGIN_TOP;
-    for (let i = 0; i < 3; ++i) {
-        // draw button
-        drawRect(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT, BUTTON_FILL_COLOR, BUTTON_LINE_COLOR);
+        for (let i = 0; i < buttons.length; ++i) {
+            // change button text
+            if (buttons[i].text !== 'PLAY AGAIN') {
+                buttons[i].text = 'PLAY AGAIN';
+            }
 
-        // draw button text
-        const buttonTextX = BUTTON_MARGIN_LEFT + (BUTTON_WIDTH/2);
-        let buttonTextY = buttonY + (BUTTON_HEIGHT-BUTTON_FONT_SIZE)/2;
-        drawButtonText(buttonTexts[i], buttonTextX, buttonTextY);
-
-        // check button click
-        if (isClicked) {
-            if ( !playerHand && isButtonClicked(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT, clickX, clickY) ) {
-                playerHand = buttonTexts[i];
+            // check button click
+            if (isClicked) {
+                if ( isButtonClicked(buttons[i].x, buttons[i].y, BUTTON_WIDTH, BUTTON_HEIGHT, clickX, clickY) ) {
+                    playAgain();
+                    break;
+                }
             }
         }
-
-        // go to next button
-        buttonY += BUTTON_MARGIN_TOP+BUTTON_HEIGHT;
     }
 
     // reset click status
@@ -181,4 +193,28 @@ function result() {
 
 function getRandomNumber(minimum, maximum) {
     return Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
+}
+
+function Button(x, y, text) {
+    this.x = x;
+    this.y = y;
+    this.text = text;
+    this.textX = BUTTON_MARGIN_LEFT + (BUTTON_WIDTH/2);
+    this.textY = this.y + (BUTTON_HEIGHT-BUTTON_FONT_SIZE)/2;
+    this.show = () => {
+        drawRect(this.x, this.y, BUTTON_WIDTH, BUTTON_HEIGHT, BUTTON_FILL_COLOR, BUTTON_LINE_COLOR);
+        drawButtonText(this.text, this.textX, this.textY);
+    };
+}
+
+// need game variables: playerHand, opponentHand, isOpponentTurn, isOpponentTextAppear, buttons, buttonTexts
+function playAgain() {
+    // reset variables
+    playerHand = '';
+    opponentHand = '';
+    isOpponentTurn = false;
+    isOpponentTextAppear = false;
+    for (let i = 0; i < buttons.length; ++i) {
+        buttons[i].text = buttonTexts[i];
+    }
 }
